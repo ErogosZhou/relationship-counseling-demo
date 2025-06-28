@@ -1,6 +1,7 @@
 class RelationshipCounselor {
     constructor() {
-        this.apiKey = 'sk-7LMBXy29CUH77WxntKPoDhIsqKZGQh0Kd6WgbpmKkZYzriYR';
+        // 从本地存储获取API密钥，如果没有则提示输入
+        this.apiKey = this.getApiKey();
         this.baseURL = 'https://xiaoai.plus/v1/chat/completions';
         this.model = 'claude-sonnet-4-20250514';
         this.conversationHistory = [];
@@ -23,6 +24,31 @@ class RelationshipCounselor {
         this.initializeElements();
         this.setupEventListeners();
         this.setupQuickTopics();
+    }
+
+    getApiKey() {
+        // 先尝试从本地存储获取
+        let apiKey = localStorage.getItem('claude_api_key');
+        
+        if (!apiKey) {
+            // 如果没有，提示用户输入
+            apiKey = prompt('请输入Claude API密钥（仅保存在本地，不会上传）:');
+            if (apiKey && apiKey.startsWith('sk-')) {
+                // 保存到本地存储
+                localStorage.setItem('claude_api_key', apiKey);
+            } else {
+                alert('无效的API密钥格式');
+                return null;
+            }
+        }
+        
+        return apiKey;
+    }
+
+    // 清除本地保存的API密钥（可用于重新设置）
+    clearApiKey() {
+        localStorage.removeItem('claude_api_key');
+        location.reload();
     }
 
     initializeElements() {
