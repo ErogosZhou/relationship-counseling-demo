@@ -1,12 +1,43 @@
 class RelationshipCounselor {
     constructor() {
-        // 从本地存储获取API密钥，如果没有则提示输入
-        this.apiKey = this.getApiKey();
+        // 配置相关属性
+        this.config = this.loadConfig();
+        this.apiKey = this.config.apiKey;
         this.baseURL = 'https://xiaoai.plus/v1/chat/completions';
-        this.model = 'claude-sonnet-4-20250514';
+        this.model = this.config.model || 'claude-sonnet-4-20250514';
+        this.systemPrompt = this.config.systemPrompt || this.getDefaultPrompt('relationship');
         this.conversationHistory = [];
         
-        this.systemPrompt = `你是心愉，温暖的情感咨询师。
+        this.initializeElements();
+        this.setupEventListeners();
+        this.setupQuickTopics();
+        this.setupConfigModal();
+        
+        // 如果没有API密钥，自动打开配置模态框
+        if (!this.apiKey) {
+            this.showConfigModal();
+        }
+    }
+
+    loadConfig() {
+        const savedConfig = localStorage.getItem('ai_config');
+        if (savedConfig) {
+            return JSON.parse(savedConfig);
+        }
+        return {};
+    }
+
+    saveConfig(config) {
+        localStorage.setItem('ai_config', JSON.stringify(config));
+        this.config = config;
+        this.apiKey = config.apiKey;
+        this.model = config.model;
+        this.systemPrompt = config.systemPrompt;
+    }
+
+    getDefaultPrompt(type) {
+        const prompts = {
+            relationship: `你是心愉，温暖的情感咨询师。
 
 重要要求：
 - 每次回复只能一段话，最多两句
@@ -19,36 +50,14 @@ class RelationshipCounselor {
 用户：我和男友总是吵架
 回复：哎呀，我朋友也遇到过这种 😔 你们最近一次是因为什么吵的？
 
-记住：一段话，最多两句，简短有温度。`;
-        
-        this.initializeElements();
-        this.setupEventListeners();
-        this.setupQuickTopics();
-    }
-
-    getApiKey() {
-        // 先尝试从本地存储获取
-        let apiKey = localStorage.getItem('claude_api_key');
-        
-        if (!apiKey) {
-            // 如果没有，提示用户输入
-            apiKey = prompt('请输入Claude API密钥（仅保存在本地，不会上传）:');
-            if (apiKey && apiKey.startsWith('sk-')) {
-                // 保存到本地存储
-                localStorage.setItem('claude_api_key', apiKey);
-            } else {
-                alert('无效的API密钥格式');
-                return null;
-            }
-        }
-        
-        return apiKey;
-    }
-
-    // 清除本地保存的API密钥（可用于重新设置）
-    clearApiKey() {
-        localStorage.removeItem('claude_api_key');
-        location.reload();
+记住：一段话，最多两句，简短有温度。`,
+            general: '你是一个友善、有帮助的AI助手。请用中文回答用户的问题，保持礼貌和专业。',
+            creative: '你是一个创意写作助手，擅长帮助用户进行创意写作、故事创作、文案撰写等工作。请发挥你的创造力和想象力。',
+            professional: '你是一个专业的商务助手，擅长商务沟通、项目管理、数据分析等工作。请保持专业、准确、高效的风格。',
+            teacher: '你是一个耐心的教学辅导老师，擅长解释复杂概念，提供学习建议。请用通俗易懂的方式回答问题。',
+            custom: ''
+        };
+        return prompts[type] || prompts.general;
     }
 
     initializeElements() {
@@ -56,6 +65,15 @@ class RelationshipCounselor {
         this.messageInput = document.getElementById('messageInput');
         this.sendBtn = document.getElementById('sendBtn');
         this.typingIndicator = document.getElementById('typingIndicator');
+        
+        // 配置模态框元素
+        this.configModal = document.getElementById('configModal');
+        this.apiKeyInput = document.getElementById('apiKeyInput');
+        this.modelSelect = document.getElementById('modelSelect');
+        this.systemPromptInput = document.getElementById('systemPromptInput');
+        this.configBtn = document.getElementById('configBtn');
+        this.saveConfigBtn = document.getElementById('saveConfig');
+        this.cancelConfigBtn = document.getElementById('cancelConfig');
     }
 
     setupEventListeners() {
@@ -79,9 +97,112 @@ class RelationshipCounselor {
             btn.addEventListener('click', (e) => {
                 e.preventDefault();
                 const topic = btn.dataset.topic;
-                this.handleQuickTopic(topic);
+                if (topic) {
+                    this.handleQuickTopic(topic);
+                }
             });
         });
+    }
+
+    setupConfigModal() {
+        // 配置按钮点击事件
+        this.configBtn.addEventListener('click', () => {
+            this.showConfigModal();
+        });
+
+        // 保存配置按钮
+        this.saveConfigBtn.addEventListener('click', () => {
+            this.handleSaveConfig();
+        });
+
+        // 取消按钮
+        this.cancelConfigBtn.addEventListener('click', () => {
+            this.hideConfigModal();
+        });
+
+        // 预设提示词按钮
+        const presetBtns = document.querySelectorAll('.preset-btn');
+        presetBtns.forEach(btn => {
+            btn.addEventListener('click', () => {
+                const preset = btn.dataset.preset;
+                this.loadPresetPrompt(preset);
+            });
+        });
+
+        // 点击模态框外部关闭
+        this.configModal.addEventListener('click', (e) => {
+            if (e.target === this.configModal) {
+                this.hideConfigModal();
+            }
+        });
+    }
+
+    showConfigModal() {
+        // 加载当前配置到表单
+        this.apiKeyInput.value = this.config.apiKey || '';
+        this.modelSelect.value = this.config.model || 'claude-sonnet-4-20250514';
+        this.systemPromptInput.value = this.config.systemPrompt || this.getDefaultPrompt('relationship');
+        
+        this.configModal.classList.add('show');
+    }
+
+    hideConfigModal() {
+        this.configModal.classList.remove('show');
+    }
+
+    loadPresetPrompt(preset) {
+        const prompt = this.getDefaultPrompt(preset);
+        this.systemPromptInput.value = prompt;
+    }
+
+    handleSaveConfig() {
+        const apiKey = this.apiKeyInput.value.trim();
+        const model = this.modelSelect.value;
+        const systemPrompt = this.systemPromptInput.value.trim();
+
+        // 验证API密钥
+        if (!apiKey) {
+            alert('请输入API密钥');
+            return;
+        }
+
+        if (!apiKey.startsWith('sk-')) {
+            alert('API密钥格式不正确，应该以 sk- 开头');
+            return;
+        }
+
+        // 验证系统提示词
+        if (!systemPrompt) {
+            alert('请输入系统提示词');
+            return;
+        }
+
+        // 保存配置
+        const newConfig = {
+            apiKey: apiKey,
+            model: model,
+            systemPrompt: systemPrompt
+        };
+
+        this.saveConfig(newConfig);
+        this.hideConfigModal();
+        
+        // 清空对话历史，因为配置已改变
+        this.conversationHistory = [];
+        this.clearChatMessages();
+        
+        alert('配置已保存！');
+    }
+
+    clearChatMessages() {
+        // 清空聊天消息，显示欢迎消息
+        this.chatMessages.innerHTML = `
+            <div class="welcome-message">
+                <h3>配置已更新</h3>
+                <p>您的AI配置已成功更新。现在可以开始新的对话了。</p>
+                <p>当前模型：${this.model}</p>
+            </div>
+        `;
     }
 
     handleQuickTopic(topic) {
@@ -110,6 +231,13 @@ class RelationshipCounselor {
     async sendMessage() {
         const message = this.messageInput.value.trim();
         if (!message) return;
+
+        // 检查是否已配置API密钥
+        if (!this.apiKey) {
+            alert('请先配置API密钥');
+            this.showConfigModal();
+            return;
+        }
 
         this.addMessage(message, 'user');
         this.messageInput.value = '';

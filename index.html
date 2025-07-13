@@ -259,6 +259,132 @@
             margin-bottom: 15px;
         }
 
+        .config-modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+
+        .config-modal.show {
+            display: flex;
+        }
+
+        .config-content {
+            background: white;
+            border-radius: 15px;
+            padding: 30px;
+            max-width: 600px;
+            width: 90%;
+            max-height: 80vh;
+            overflow-y: auto;
+        }
+
+        .config-header {
+            text-align: center;
+            margin-bottom: 25px;
+        }
+
+        .config-header h2 {
+            color: #667eea;
+            margin-bottom: 10px;
+        }
+
+        .config-section {
+            margin-bottom: 25px;
+        }
+
+        .config-section h3 {
+            color: #495057;
+            margin-bottom: 10px;
+            font-size: 16px;
+        }
+
+        .config-input, .config-select, .config-textarea {
+            width: 100%;
+            padding: 12px 16px;
+            border: 1px solid #dee2e6;
+            border-radius: 8px;
+            font-size: 14px;
+            font-family: inherit;
+            outline: none;
+            transition: border-color 0.3s ease;
+        }
+
+        .config-input:focus, .config-select:focus, .config-textarea:focus {
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        .config-textarea {
+            min-height: 120px;
+            resize: vertical;
+        }
+
+        .config-buttons {
+            display: flex;
+            gap: 15px;
+            justify-content: flex-end;
+            margin-top: 30px;
+        }
+
+        .config-btn {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 8px;
+            font-size: 14px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .config-btn.primary {
+            background: #667eea;
+            color: white;
+        }
+
+        .config-btn.primary:hover {
+            background: #5a67d8;
+        }
+
+        .config-btn.secondary {
+            background: #f8f9fa;
+            color: #495057;
+            border: 1px solid #dee2e6;
+        }
+
+        .config-btn.secondary:hover {
+            background: #e9ecef;
+        }
+
+        .preset-prompts {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 10px;
+            margin-top: 10px;
+        }
+
+        .preset-btn {
+            padding: 8px 12px;
+            background: #f8f9fa;
+            border: 1px solid #dee2e6;
+            border-radius: 6px;
+            font-size: 12px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-align: left;
+        }
+
+        .preset-btn:hover {
+            background: #667eea;
+            color: white;
+        }
+
         @media (max-width: 768px) {
             .container {
                 height: 100vh;
@@ -296,6 +422,12 @@
                 <a href="#" class="topic-btn" data-topic="亲密度">💕 亲密度与边界</a>
                 <a href="#" class="topic-btn" data-topic="长期关系">🌱 长期关系维护</a>
                 <a href="#" class="topic-btn" data-topic="性关系">🌹 性关系健康指导</a>
+            </div>
+            
+            <div class="config-section">
+                <button class="topic-btn" id="configBtn" style="background: #667eea; color: white; border: none;">
+                    ⚙️ AI 配置设置
+                </button>
             </div>
         </div>
 
@@ -336,6 +468,50 @@
                         </svg>
                     </button>
                 </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 配置模态框 -->
+    <div class="config-modal" id="configModal">
+        <div class="config-content">
+            <div class="config-header">
+                <h2>AI 配置设置</h2>
+                <p>配置您的AI模型和提示词偏好</p>
+            </div>
+            
+            <div class="config-section">
+                <h3>API 密钥</h3>
+                <input type="password" id="apiKeyInput" class="config-input" placeholder="请输入您的API密钥">
+            </div>
+            
+            <div class="config-section">
+                <h3>选择模型</h3>
+                <select id="modelSelect" class="config-select">
+                    <option value="claude-sonnet-4-20250514">Claude Sonnet 4 (推荐)</option>
+                    <option value="gpt-4o">GPT-4o</option>
+                    <option value="gpt-4o-mini">GPT-4o Mini</option>
+                    <option value="gpt-4">GPT-4</option>
+                    <option value="gpt-3.5-turbo">GPT-3.5 Turbo</option>
+                </select>
+            </div>
+            
+            <div class="config-section">
+                <h3>系统提示词</h3>
+                <div class="preset-prompts">
+                    <button class="preset-btn" data-preset="relationship">亲密关系咨询师</button>
+                    <button class="preset-btn" data-preset="general">通用AI助手</button>
+                    <button class="preset-btn" data-preset="creative">创意写作助手</button>
+                    <button class="preset-btn" data-preset="professional">专业商务助手</button>
+                    <button class="preset-btn" data-preset="teacher">教学辅导老师</button>
+                    <button class="preset-btn" data-preset="custom">自定义</button>
+                </div>
+                <textarea id="systemPromptInput" class="config-textarea" placeholder="请输入系统提示词..."></textarea>
+            </div>
+            
+            <div class="config-buttons">
+                <button class="config-btn secondary" id="cancelConfig">取消</button>
+                <button class="config-btn primary" id="saveConfig">保存配置</button>
             </div>
         </div>
     </div>
