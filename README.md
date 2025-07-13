@@ -37,7 +37,7 @@
 ## 快速开始
 
 ### 🎯 简单使用
-1. 访问 [Demo地址](https://your-username.github.io/relationship-counseling-demo/)
+1. 访问 [Demo地址](https://ErogosZhou.github.io/relationship-counseling-demo/)
 2. 首次使用会自动弹出配置窗口，输入你的API密钥
 3. 选择适合的AI模型和角色提示词
 4. 点击"保存配置"开始使用
